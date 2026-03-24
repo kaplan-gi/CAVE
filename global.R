@@ -56,8 +56,8 @@ HSAs <- geojson_sf(paste0(path,"HSA.geojson"))
 
 # time_obs <- read.csv("~/Dropbox/COVID_ShinyApp/Celiac/Data/Temporal_Incidence.csv")
 time_obs <- read.csv(paste0(path,"Temporal_Incidence.csv"))
-#time_trends <- read.csv(paste0(path, "Temporal_Incidence_Trends.csv"))
-time_trends <- read.csv("~/Dropbox/COVID_ShinyApp/Celiac/Data/Temporal_Incidence_Trends.csv")
+time_trends <- read.csv(paste0(path, "Temporal_Incidence_Trends.csv"))
+#time_trends <- read.csv("~/Dropbox/COVID_ShinyApp/Celiac/Data/Temporal_Incidence_Trends.csv")
 
 # data prep
 
