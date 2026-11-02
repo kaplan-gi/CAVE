@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.httr-oauth
+.DS_Store
+.quarto
+.Ruserdata
+renv/library/
+renv/staging/
+renv/python/
+.positai
