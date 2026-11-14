@@ -1,64 +1,58 @@
 # Celiac disease application; 3D plots tab
 # Contributor: Lindsay Hracs, Julia Gorospe
-# Date: 26-Jan-23
-# Date updated: 2026-03-24
-# R version 4.1.2
-# Built on macOS Monterey 12.1
+# Date: 2023-01-26
+# Date updated: 2026-04-23
 
 # user interface
 time_seriesUI <- function(id) {
+    
     ns <- NS(id)
     
-    sidebarLayout(
-        
-        sidebarPanel(width = 3, style = "font-size: 90%; height: 80vh; overflow-y: auto; background-color: #D4DADC;", # height: 85vh; overflow-y: auto; <-- for scroll bar
-                     
-                     fluidRow(
-                         column(6, actionButton(inputId = ns("defs"), label = "Useful Definitions", icon = icon("book", verify_fa = FALSE)), align = "center"), # add verify_fa = FALSE argument along with the name of the icon, i.e., icon = icon("icon-name", verify_fa = FALSE) 
-                         column(6, actionButton(inputId = ns("help"), label = "Help", icon = icon("circle-question")), align = "center") 
-                     ),
-                     
-                     hr(style = "border-top: 2px solid #363538;"), 
+    card(style = "margin-top: 10px", height = "76vh",
+         
+         layout_sidebar(
+             
+             sidebar = sidebar(
+                 width = "25%",
+                 
+                 layout_columns(
+                     actionButton(inputId = ns("defs"),
+                                  label = "Definitions",
+                                  icon = icon("book")),
+                     actionButton(inputId = ns("help"),
+                                  label = "Help",
+                                  icon = icon("circle-question"))
+                 ),
+                 
+                 hr(style = "border-top: 2px solid #363538; !important"),
+    
 
                      
-                     HTML("<p style = 'font-size: 115%;'><b>Make selections below to view a subset of the data:</b></p>"),
+                 HTML("<p style = 'color: #316673;'><i>Make selections below to view a subset of the data:</i></p>"),
+                 
+                 prettyRadioButtons(inputId = ns("age"),
+                                    label = HTML("<span style = 'font-size: 115%;'>Age category:</span>"),
+                                    choices = list("All Ages" = "Overall", "Adults (18+)" = "Adults", "Children (0-17)" = "Children"),
+                                    selected = "Overall",
+                                    inline = FALSE,
+                                    status = "info"
+                 ),
+                 
+                 prettyRadioButtons(inputId = ns("ttg_level"),
+                                    label = HTML("<span style = 'font-size: 115%;'>TTG Level:</span>"),
+                                    choices = list("All Positive Tests" = "Positive", "High TTG\n(>=10x the upper limit of normal)" = "10x ULN"),
+                                    selected = "Positive",
+                                    inline = FALSE,
+                                    status = "info"
+                 ),
+             ),
                      
-                     prettyRadioButtons(inputId = ns("age"),
-                                        label = HTML("<span style = 'font-size: 115%;'>Age category:</span>"),
-                                        choices = list("All Ages" = "Overall", "Adults (18+)" = "Adults", "Children (0-17)" = "Children"),
-                                        selected = "Overall",
-                                        inline = FALSE,
-                                        status = "info"
-                     ),
-                     
-                     prettyRadioButtons(inputId = ns("ttg_level"),
-                                        label = HTML("<span style = 'font-size: 115%;'>TTG Level:</span>"),
-                                        choices = list("All Positive Tests" = "Positive", "High TTG (>=10x the upper limit of normal)" = "10x ULN"),
-                                        selected = "Positive",
-                                        inline = FALSE,
-                                        status = "info"
-                     ),
-                     
-                     
-                     hr(style = "border-top: 2px solid #363538;"),
-                     
-                     div(class = "logo", tags$a(img(src="https://raw.githubusercontent.com/kaplan-gi/Images/main/UC-Cumming-Centre%20for%20Health%20Informatics.jpg", height = "75%", width = "75%"), href = "https://cumming.ucalgary.ca/centres/centre-health-informatics/", target = "_blank"), align = "center"),
-                     
-                     div(class = "logo", tags$a(img(src="https://raw.githubusercontent.com/kaplan-gi/Images/main/AB_SPOR.jpg", height = "60%", width = "60%"), href = "https://absporu.ca/", target = "_blank"), align = "center"),
-                     
-                     div(class = "logo", tags$a(img(src="https://raw.githubusercontent.com/kaplan-gi/Images/main/AHS.png", height = "60%", width = "60%"), href = "https://www.albertahealthservices.ca/", target = "_blank"), align = "center"),
-                     
-        ),
-        
-        mainPanel(
-            style = "padding: 15px;", #margin-top: 10px; margin-left: 10px; 
+
             plotlyOutput(ns("plot"), width = "100%", height = "75vh") %>% withSpinner()
-            
-        )
         
-    ) # sidebarLayout 
-    
-} # fluidPage
+        ) # sidebarLayout 
+    ) # card
+} # page
 
 ####################################################################################################################################################
 ####################################################################################################################################################
@@ -68,13 +62,6 @@ time_seriesUI <- function(id) {
 time_seriesServer <- function(id) {
     
     moduleServer(id, function(input, output, session) {
-        
-        icons <- awesomeIcons(
-            icon = "chart-bar",
-            iconColor = "black",
-            library = "fa",
-            markerColor = "orange"
-        )
         
         error_message <- HTML("<span style = 'font-size: 250%; color: #408697; text-align: center;'>No data to present. Please make another selection.</span>")
         
@@ -119,9 +106,7 @@ time_seriesServer <- function(id) {
                 filter(Age == input$age,
                        TTG == input$ttg_level)
         })
-        
-        # set plot font format
-        #t_font <- list(color = "black", size = 25)
+
         
         # vertical lines position for period partitions
         covid_start <- as.Date("2020-01-01")
@@ -159,6 +144,9 @@ time_seriesServer <- function(id) {
         
         # mainPanel plot 
         output$plot <- renderPlotly({
+            
+            # cache data locally
+            time <- time_react()
             
             # get annotations
             trends <- trend_react()
@@ -230,7 +218,7 @@ time_seriesServer <- function(id) {
             )
             
             # build plot
-            plot_ly(time_react()) %>% 
+            plot_ly(time) %>% 
                 add_trace(
                     x = ~x,
                     y = ~Est,
@@ -270,13 +258,14 @@ time_seriesServer <- function(id) {
                                  tickfont = list(size = 16),
                                  linewidth = 0.5),
                     yaxis = list(title = "Incidence (per 100,000 person-years)",
-                                 range = c(0, 1.2*max(time_react()$Rate)),
+                                 range = c(0, 1.2*max(time$Rate)),
                                  titlefont = list(size = 18),
                                  tickfont = list(size = 16),
                                  linewidth = 0.5),
                     annotations = covid_annote,
                     shapes = list(pandemic_rect, vline(covid_start, "#363538"), vline(covid_end, "#363538")),
-                    margin = list(t = 60, r = 0, b=120)
+                    margin = list(t = 60, r = 0, b=120),
+                    font = list(family = "Ubuntu")
                 ) 
             
         }) # renderPlotly
